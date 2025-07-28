@@ -1,8 +1,10 @@
-# 도메인 기반 모듈형 모노리식 풀스택 템플릿
-
 # 🧱 Modular Monolith Fullstack Template
 
-> **Spring Boot + Next.js 기반 도메인 중심 풀스택 템플릿**> 도메인 주도 설계(DDD)에 기반한 모듈형 모노리식 구조로, 팀 협업과 유지보수, 확장성을 모두 고려하였습니다.
+> Spring Boot + Next.js 기반 도메인 중심 풀스택 템플릿
+> 
+> 
+> 도메인 주도 설계(DDD)에 기반한 모듈형 모노리식 구조로, 팀 협업과 유지보수, 확장성을 모두 고려하였습니다. 또한, **Spring Security**를 통한 JWT + Redis 기반의 인증 시스템을 통합하여 보안을 강화했습니다.
+> 
 
 ---
 
@@ -10,12 +12,12 @@
 
 이 템플릿은 실전 개발에 바로 적용 가능한 풀스택 구조로 구성되어 있습니다:
 
-- 🌱 **Backend**: Spring Boot 3, Kotlin DSL, JPA
+- 🌱 **Backend**: Spring Boot 3, Kotlin DSL, JPA, Spring Security, Redis
 - ⚛️ **Frontend**: Next.js 14 App Router, TypeScript, Zustand
 - 🐳 **Infrastructure**: Docker, GitHub Actions, Nginx
 - 🧩 **Architecture**: 도메인 기반 Modular Monolith
 
-도메인 구조를 백엔드와 프론트엔드에서 동일하게 유지하여 향후 MSA 전환도 쉽게 할 수 있습니다.
+도메인 구조를 백엔드와 프론트엔드에서 동일하게 유지하여 향후 MSA 전환도 쉽게 할 수 있습니다. **Spring Security**와 **JWT** 기반 인증 시스템을 구현하며, **Redis**를 활용한 리프레시 토큰 관리 시스템을 포함하고 있습니다.
 
 ---
 
@@ -23,10 +25,11 @@
 
 ```bash
 mono-modulith-project/
-├── backend/                 # 🧠 Spring Boot 백엔드
+├── backend/
 │   ├── domain/              # 도메인별 모듈 (auth, policy, community 등)
 │   ├── global/              # 글로벌 설정 (보안, 예외, config)
 │   ├── shared/              # 공통 유틸리티, VO, enum
+│   ├── security/            # Spring Security 관련 설정
 │   └── build.gradle.kts
 │
 ├── frontend/                # 🌐 Next.js 프론트엔드
@@ -49,31 +52,30 @@ mono-modulith-project/
 
 ```
 
----
-
 ## 🧩 도메인 네이밍 규칙
 
-| 도메인   | 백엔드 (/domain)  | 프론트엔드 (/app)  |
-| -------- | ----------------- | ------------------ |
-| 인증     | `auth/`           | `/auth/`           |
-| 커뮤니티 | `community/`      | `/community/`      |
-| 정책     | `policy/`         | `/policy/`         |
-| 추천     | `recommendation/` | `/recommendation/` |
-| 설문     | `survey/`         | `/survey/`         |
-| 관리자   | `admin/`          | `/admin/`          |
+| 도메인 | 백엔드 (/domain) | 프론트엔드 (/app) |
+| --- | --- | --- |
+| 인증 | `auth/` | `/auth/` |
+| 커뮤니티 | `community/` | `/community/` |
+| 정책 | `policy/` | `/policy/` |
+| 추천 | `recommendation/` | `/recommendation/` |
+| 설문 | `survey/` | `/survey/` |
+| 관리자 | `admin/` | `/admin/` |
 
 > 📌 도메인 이름을 통일하면 테스트, 라우팅, 디버깅, MSA 전환이 쉬워집니다.
+> 
 
 ---
 
 ## 🔧 기술 스택 요약
 
-| 계층           | 사용 기술                                            |
-| -------------- | ---------------------------------------------------- |
-| **프론트엔드** | Next.js 14, TypeScript, React, Zustand, TailwindCSS  |
-| **백엔드**     | Spring Boot 3, Kotlin DSL, JPA, Hibernate            |
-| **인프라**     | Docker, GitHub Actions, Nginx, MySQL, Redis          |
-| **도구**       | Swagger/OpenAPI, ESLint, Prettier, Husky, CommitLint |
+| 계층 | 사용 기술 |
+| --- | --- |
+| **프론트엔드** | Next.js 14, TypeScript, React, Zustand, TailwindCSS |
+| **백엔드** | Spring Boot 3, Kotlin DSL, JPA, Hibernate, Spring Security, Redis |
+| **인프라** | Docker, GitHub Actions, Nginx, MySQL, Redis |
+| **도구** | Swagger/OpenAPI, ESLint, Prettier, Husky, CommitLint |
 
 ---
 
@@ -92,7 +94,6 @@ mono-modulith-project/
 ```bash
 git clone https://github.com/your-org/mono-modulith-project.git
 cd mono-modulith-project
-
 ```
 
 1. `.env` 환경 설정
@@ -100,14 +101,12 @@ cd mono-modulith-project
 ```bash
 cp infra/docker/.env.dev .env
 # DB, Redis, API 키 등을 필요에 맞게 수정
-
 ```
 
 1. Docker Compose로 전체 실행
 
 ```bash
 docker-compose -f infra/docker/docker-compose.dev.yml up --build
-
 ```
 
 - 🔗 **Backend API**: [http://localhost:8080](http://localhost:8080/)
@@ -117,11 +116,11 @@ docker-compose -f infra/docker/docker-compose.dev.yml up --build
 
 ## 🧪 CI/CD 파이프라인
 
-| 워크플로우    | 트리거 조건          | 설명                     |
-| ------------- | -------------------- | ------------------------ |
-| `ci.yml`      | `dev` 브랜치 PR/푸시 | Lint + Build + Test 수행 |
-| `preview.yml` | PR 생성 or sync 시점 | Vercel 미리보기 배포     |
-| `cd.yml`      | `main` 브랜치 푸시   | 운영 환경 자동 배포      |
+| 워크플로우 | 트리거 조건 | 설명 |
+| --- | --- | --- |
+| `ci.yml` | `dev` 브랜치 PR/푸시 | Lint + Build + Test 수행 |
+| `preview.yml` | PR 생성 or sync 시점 | Vercel 미리보기 배포 |
+| `cd.yml` | `main` 브랜치 푸시 | 운영 환경 자동 배포 |
 
 ---
 
@@ -136,11 +135,11 @@ docker-compose -f infra/docker/docker-compose.dev.yml up --build
 
 ## 📚 문서 디렉토리 (`/docs`)
 
-| 파일명                  | 내용 설명                                     |
-| ----------------------- | --------------------------------------------- |
-| `architecture.md`       | 시스템 아키텍처 및 계층 구조 설명             |
-| `api-spec.yaml`         | Swagger/OpenAPI 기반 API 명세                 |
-| `db-schema.sql`         | MySQL 기반 DB 테이블 정의                     |
+| 파일명 | 내용 설명 |
+| --- | --- |
+| `architecture.md` | 시스템 아키텍처 및 계층 구조 설명 |
+| `api-spec.yaml` | Swagger/OpenAPI 기반 API 명세 |
+| `db-schema.sql` | MySQL 기반 DB 테이블 정의 |
 | `contribution-guide.md` | Git 브랜치 전략, 커밋 메시지 컨벤션 등 가이드 |
 
 ---
@@ -149,11 +148,11 @@ docker-compose -f infra/docker/docker-compose.dev.yml up --build
 
 ### 🔖 브랜치 네이밍 컨벤션
 
-| 타입      | 예시                            |
-| --------- | ------------------------------- |
-| 기능      | `feat/auth/login`               |
-| 버그 수정 | `fix/community/comment-null`    |
-| 리팩토링  | `refactor/policy/score-service` |
+| 타입 | 예시 |
+| --- | --- |
+| 기능 | `feat/auth/login` |
+| 버그 수정 | `fix/community/comment-null` |
+| 리팩토링 | `refactor/policy/score-service` |
 
 ### 📝 커밋 메시지 규칙
 
@@ -162,6 +161,7 @@ docker-compose -f infra/docker/docker-compose.dev.yml up --build
 - `refactor: 정책 점수 계산 리팩토링 (policy)`
 
 > ⛳ Conventional Commits 방식 사용 권장
+> 
 
 ---
 
@@ -177,6 +177,7 @@ docker-compose -f infra/docker/docker-compose.dev.yml up --build
 ## 🧩 한 줄 요약
 
 > 도메인 일치 기반의 모듈형 모노리식 구조로, 팀 협업과 유지보수, MSA 확장까지 고려한 실전형 풀스택 아키텍처 템플릿입니다.
+> 
 
 ---
 
@@ -184,11 +185,12 @@ docker-compose -f infra/docker/docker-compose.dev.yml up --build
 
 MIT © [your-org]
 
-# 제목 없음
+---
 
 # ✅ 🔄 매일 작업 시작 전: 최신 dev 코드 통합 절차
 
 > 목표: feat/개인브랜치에 있는 내 작업을 유지하면서, origin/dev의 최신 내용을 끌어와 통합한다.
+> 
 
 ---
 
@@ -199,14 +201,18 @@ git branch
 ```
 
 - 결과 예시:
-  ```
-  * feat/channy
-    dev
-  ```
+    
+    ```
+    * feat/channy
+      dev
+    ```
+    
 
 > 현재 feat/channy에 있다면 계속 진행해도 OK
->
+> 
+> 
 > 만약 `dev`에 있다면 다음 단계로 이동하세요.
+> 
 
 ---
 
@@ -221,6 +227,7 @@ git pull origin dev
 ```
 
 > ✅ 이제 로컬 dev는 최신 상태가 됨
+> 
 
 ---
 
@@ -239,6 +246,7 @@ git pull origin dev --rebase
 ```
 
 > 이 명령은 다음을 의미합니다:
+> 
 
 ```
 “origin/dev”의 최신 내용을 내 브랜치(feat/channy)의 **기준점 아래에 넣고**,
@@ -283,6 +291,7 @@ git rebase --continue
 ```
 
 > ❗ 충돌이 여러 개 있을 경우 위 과정을 반복
+> 
 
 ---
 
@@ -293,29 +302,31 @@ git push origin feat/channy --force
 ```
 
 > --force는 rebase로 인해 커밋 해시가 변경되었기 때문에 필요
->
+> 
+> 
 > 단, **팀과 합의된 상황에서만 사용**하세요
+> 
 
 ---
 
 ## 💡 예시 요약
 
-| 단계 | 명령어                             | 설명                                 |
-| ---- | ---------------------------------- | ------------------------------------ |
-| 1    | `git checkout dev`                 | dev로 이동                           |
-| 2    | `git pull origin dev`              | 최신 dev 내용 받아오기               |
-| 3    | `git checkout feat/channy`         | 다시 내 브랜치로 이동                |
-| 4    | `git pull origin dev --rebase`     | dev의 변경사항 위에 내 작업을 재정렬 |
-| 5    | `git add`, `git rebase --continue` | 충돌 발생 시 해결                    |
-| 6    | `git push --force`                 | rebase된 내 브랜치 다시 푸시         |
+| 단계 | 명령어 | 설명 |
+| --- | --- | --- |
+| 1 | `git checkout dev` | dev로 이동 |
+| 2 | `git pull origin dev` | 최신 dev 내용 받아오기 |
+| 3 | `git checkout feat/channy` | 다시 내 브랜치로 이동 |
+| 4 | `git pull origin dev --rebase` | dev의 변경사항 위에 내 작업을 재정렬 |
+| 5 | `git add`, `git rebase --continue` | 충돌 발생 시 해결 |
+| 6 | `git push --force` | rebase된 내 브랜치 다시 푸시 |
 
 ---
 
 ## 🧠 왜 `merge` 대신 `rebase`를 쓰나요?
 
-| 방식     | 설명                         | 장점                              |
-| -------- | ---------------------------- | --------------------------------- |
-| `merge`  | 브랜치를 단순히 병합         | 히스토리 보기 복잡                |
+| 방식 | 설명 | 장점 |
+| --- | --- | --- |
+| `merge` | 브랜치를 단순히 병합 | 히스토리 보기 복잡 |
 | `rebase` | 내 커밋을 dev 위에 다시 쌓음 | 커밋 히스토리 깔끔, 병합커밋 없음 |
 
 ---
@@ -324,7 +335,7 @@ git push origin feat/channy --force
 
 - `git log --oneline --graph --all` → 히스토리 구조 확인
 - 항상 `dev` 최신화 후 작업 시작!
-- 팀과 협의 없이 `-force`는 금지
+- 팀과 협의 없이 `force`는 금지
 
 ---
 
@@ -340,12 +351,12 @@ git push origin feat/channy --force
 
 ## ✅ Gradle 설치 및 Wrapper 생성 전체 흐름
 
-| 단계 | 설명                                    |
-| ---- | --------------------------------------- |
-| 1    | Gradle 설치 (수동/SDKMAN/패키지 매니저) |
-| 2    | 환경 변수 설정 (`GRADLE_HOME`, `PATH`)  |
-| 3    | 설치 확인 (`gradle -v`)                 |
-| 4    | 프로젝트 루트에서 `gradle wrapper` 실행 |
+| 단계 | 설명 |
+| --- | --- |
+| 1 | Gradle 설치 (수동/SDKMAN/패키지 매니저) |
+| 2 | 환경 변수 설정 (`GRADLE_HOME`, `PATH`) |
+| 3 | 설치 확인 (`gradle -v`) |
+| 4 | 프로젝트 루트에서 `gradle wrapper` 실행 |
 
 ### 📘 1단계: Gradle 수동 설치 (Windows 기준)
 
@@ -355,10 +366,10 @@ git push origin feat/channy --force
 
 ### 📘 2단계: 환경 변수 설정
 
-| 변수 이름     | 값 예시                      |
-| ------------- | ---------------------------- |
+| 변수 이름 | 값 예시 |
+| --- | --- |
 | `GRADLE_HOME` | `C:\Tools\Gradle\gradle-8.7` |
-| `Path`        | `%GRADLE_HOME%\bin`          |
+| `Path` | `%GRADLE_HOME%\bin` |
 
 ### 📘 3단계: 설치 확인
 
@@ -374,6 +385,7 @@ gradle wrapper
 ```
 
 > 다음 파일들이 생성됨:
+> 
 
 ```
 gradlew
@@ -427,23 +439,23 @@ docker compose -f docker-compose.dev.yml down
 
 ## 📂 도커 구성 요약
 
-| 파일명                   | 역할                       |
-| ------------------------ | -------------------------- |
-| `docker-compose.dev.yml` | 개발용 전체 인프라 정의    |
-| `.env.dev`               | 도커 실행 시 환경변수 참조 |
-| `Dockerfile.backend`     | 백엔드 이미지 빌드 정의    |
-| `Dockerfile.frontend`    | 프론트 이미지 빌드 정의    |
-| `init.sql`               | DB 초기 데이터 삽입 (옵션) |
-| `nginx.conf`             | 프록시 및 정적 라우팅 설정 |
+| 파일명 | 역할 |
+| --- | --- |
+| `docker-compose.dev.yml` | 개발용 전체 인프라 정의 |
+| `.env.dev` | 도커 실행 시 환경변수 참조 |
+| `Dockerfile.backend` | 백엔드 이미지 빌드 정의 |
+| `Dockerfile.frontend` | 프론트 이미지 빌드 정의 |
+| `init.sql` | DB 초기 데이터 삽입 (옵션) |
+| `nginx.conf` | 프록시 및 정적 라우팅 설정 |
 
 ---
 
 ## ✅ 전체 실행 흐름 정리
 
-| 터미널 | 위치              | 명령어                                                |
-| ------ | ----------------- | ----------------------------------------------------- |
-| 백엔드 | `cd backend`      | `./gradlew bootRun`                                   |
-| 프론트 | `cd frontend`     | `npm install && npm run dev`                          |
+| 터미널 | 위치 | 명령어 |
+| --- | --- | --- |
+| 백엔드 | `cd backend` | `./gradlew bootRun` |
+| 프론트 | `cd frontend` | `npm install && npm run dev` |
 | 인프라 | `cd infra/docker` | `docker compose -f docker-compose.dev.yml up --build` |
 
 ---
@@ -459,14 +471,14 @@ docker system prune -af
 
 ## 🧠 참고 사항
 
-| 항목          | 설명                            |
-| ------------- | ------------------------------- |
-| MySQL 포트    | `20003`                         |
-| Redis 포트    | `6379`                          |
-| Backend 포트  | `8080`                          |
+| 항목 | 설명 |
+| --- | --- |
+| MySQL 포트 | `20003` |
+| Redis 포트 | `6379` |
+| Backend 포트 | `8080` |
 | 환경변수 위치 | `.env.local`, `application.yml` |
-| API 연결 주소 | `http://localhost:8080`         |
-| Hot Reload    | Spring DevTools, Next.js 적용됨 |
+| API 연결 주소 | `http://localhost:8080` |
+| Hot Reload | Spring DevTools, Next.js 적용됨 |
 
 ---
 
@@ -474,11 +486,11 @@ docker system prune -af
 
 ### 🔐 Vercel Secrets 설정
 
-| Name                | 설명                                         |
-| ------------------- | -------------------------------------------- |
-| `VERCEL_TOKEN`      | Vercel Personal Access Token (계정에서 생성) |
-| `VERCEL_ORG_ID`     | Vercel Team or Org ID                        |
-| `VERCEL_PROJECT_ID` | 해당 프로젝트 ID                             |
+| Name | 설명 |
+| --- | --- |
+| `VERCEL_TOKEN` | Vercel Personal Access Token (계정에서 생성) |
+| `VERCEL_ORG_ID` | Vercel Team or Org ID |
+| `VERCEL_PROJECT_ID` | 해당 프로젝트 ID |
 
 해당 값은 GitHub 레포지토리 > **Settings > Secrets and variables > Actions** 탭에서 **Repository secrets**로 등록해야 합니다.
 
@@ -486,5 +498,3 @@ docker system prune -af
 
 1. https://vercel.com/account/tokens 접속
 2. “Create Token” 클릭 → 복사해서 GitHub Secret에 등록
-
----
